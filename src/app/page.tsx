@@ -7,13 +7,13 @@ import TimeInput from "@/components/TimeInput";
 
 export default function Home() {
   const [isCustomTime, setIsCustomTime] = useState(false);
-  const [playTime, setPlayTime] = useState("10:00");
+  const [playTime, setPlayTime] = useState("09:55");
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // Default play time (bisa diatur sesuai kebutuhan)
-  const defaultPlayTime = "10:00";
+  const defaultPlayTime = "09:55";
 
   useEffect(() => {
     const checkTime = () => {
