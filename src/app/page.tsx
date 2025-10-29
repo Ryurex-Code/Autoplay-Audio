@@ -84,7 +84,7 @@ export default function Home() {
 
         <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-12">
           {/* Header */}
-          <div className="text-center mb-16 animate-fade-in">
+                  <div className="text-center mb-16 animate-fade-in">
             <h1 className="text-6xl md:text-7xl font-bold text-gray-800 mb-4 tracking-tight">
               Auto Play Indonesia Raya
             </h1>
