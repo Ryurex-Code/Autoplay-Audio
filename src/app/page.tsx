@@ -7,7 +7,7 @@ import TimeInput from "@/components/TimeInput";
 
 export default function Home() {
   const [isCustomTime, setIsCustomTime] = useState(false);
-  const [playTime, setPlayTime] = useState("15:00");
+  const [playTime, setPlayTime] = useState("16:00");
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -15,7 +15,7 @@ export default function Home() {
   const wakeLockRef = useRef<any>(null);
 
   // Default play time (bisa diatur sesuai kebutuhan)
-  const defaultPlayTime = "15:00";
+  const defaultPlayTime = "16:00";
 
   // Keep screen awake - Request Wake Lock
   useEffect(() => {
