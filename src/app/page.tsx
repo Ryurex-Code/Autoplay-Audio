@@ -7,14 +7,60 @@ import TimeInput from "@/components/TimeInput";
 
 export default function Home() {
   const [isCustomTime, setIsCustomTime] = useState(false);
-  const [playTime, setPlayTime] = useState("09:55");
+  const [playTime, setPlayTime] = useState("11:00");
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const wakeLockRef = useRef<any>(null);
 
   // Default play time (bisa diatur sesuai kebutuhan)
-  const defaultPlayTime = "09:55";
+  const defaultPlayTime = "11:00";
 
+  // Keep screen awake - Request Wake Lock
+  useEffect(() => {
+    const requestWakeLock = async () => {
+      try {
+        if ("wakeLock" in navigator) {
+          wakeLockRef.current = await (navigator as any).wakeLock.request("screen");
+          console.log("Wake Lock activated");
+        }
+      } catch (err) {
+        console.log("Wake Lock error:", err);
+      }
+    };
+
+    requestWakeLock();
+
+    // Re-request wake lock when page becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden && wakeLockRef.current?.released) {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release();
+      }
+    };
+  }, []);
+
+  // Monitor page visibility
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(!document.hidden);
+      console.log("Page visibility:", !document.hidden ? "visible" : "hidden");
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
+  // Check time even when page is not visible
   useEffect(() => {
     const checkTime = () => {
       const now = new Date();
@@ -24,8 +70,11 @@ export default function Home() {
 
       const targetTime = isCustomTime ? playTime : defaultPlayTime;
 
+      console.log(`Current: ${currentTime}, Target: ${targetTime}, Has Played: ${hasPlayed}`);
+
       // Auto play jika waktu sesuai dan belum pernah dimainkan
       if (currentTime === targetTime && !hasPlayed && audioRef.current) {
+        console.log("Attempting to play audio...");
         playAudio();
         setHasPlayed(true);
       }
@@ -36,6 +85,10 @@ export default function Home() {
       }
     };
 
+    // Check immediately
+    checkTime();
+
+    // Use shorter interval for more accuracy
     const interval = setInterval(checkTime, 1000);
     return () => clearInterval(interval);
   }, [isCustomTime, playTime, hasPlayed]);
@@ -43,10 +96,33 @@ export default function Home() {
   const playAudio = async () => {
     if (audioRef.current) {
       try {
+        // Load audio if not already loaded
+        if (audioRef.current.readyState < 2) {
+          await audioRef.current.load();
+        }
+        
         await audioRef.current.play();
         setIsPlaying(true);
+        
+        // Show notification if permission granted
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("🎵 Musik Diputar", {
+            body: "Indonesia Raya sedang diputar",
+            icon: "/favicon.ico",
+          });
+        }
       } catch (error) {
         console.error("Error playing audio:", error);
+        
+        // Fallback: try to play again after a short delay
+        setTimeout(async () => {
+          try {
+            await audioRef.current?.play();
+            setIsPlaying(true);
+          } catch (retryError) {
+            console.error("Retry failed:", retryError);
+          }
+        }, 1000);
       }
     }
   };
@@ -70,6 +146,13 @@ export default function Home() {
     setPlayTime(newTime);
     setHasPlayed(false);
   };
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden">
@@ -234,6 +317,7 @@ export default function Home() {
                     <audio
                       ref={audioRef}
                       src="/music.mp3"
+                      preload="auto"
                       onPlay={() => setIsPlaying(true)}
                       onPause={() => setIsPlaying(false)}
                       onEnded={() => setIsPlaying(false)}
@@ -243,11 +327,21 @@ export default function Home() {
                   </div>
 
                   {/* Status Indicator */}
-                  <div className="mt-6 flex items-center justify-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-green-400 animate-pulse' : 'bg-white/50'}`}></div>
-                    <span className="text-sm text-white/80">
-                      {isPlaying ? 'Playing' : 'Stopped'}
-                    </span>
+                  <div className="mt-6 flex flex-col items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-green-400 animate-pulse' : 'bg-white/50'}`}></div>
+                      <span className="text-sm text-white/80">
+                        {isPlaying ? 'Playing' : 'Stopped'}
+                      </span>
+                    </div>
+                    {!isVisible && (
+                      <div className="flex items-center gap-2 text-xs text-yellow-300">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        <span>Tab tidak aktif</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -265,6 +359,8 @@ export default function Home() {
                     <ul className="text-sm text-gray-600 space-y-1.5">
                       <li>• <strong>Default:</strong> Musik auto-play pada {defaultPlayTime}</li>
                       <li>• <strong>Custom Time:</strong> Atur waktu sendiri</li>
+                      <li>• <strong>Penting:</strong> Tab harus tetap terbuka untuk auto-play</li>
+                      <li>• <strong>Notifikasi:</strong> Aktifkan untuk alert saat musik diputar</li>
                     </ul>
                   </div>
                 </div>
