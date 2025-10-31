@@ -7,7 +7,7 @@ import TimeInput from "@/components/TimeInput";
 
 export default function Home() {
   const [isCustomTime, setIsCustomTime] = useState(false);
-  const [playTime, setPlayTime] = useState("16:00");
+  const [playTime, setPlayTime] = useState("09:55");
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -15,7 +15,7 @@ export default function Home() {
   const wakeLockRef = useRef<any>(null);
 
   // Default play time (bisa diatur sesuai kebutuhan)
-  const defaultPlayTime = "16:00";
+  const defaultPlayTime = "09:55";
 
   // Keep screen awake - Request Wake Lock
   useEffect(() => {
@@ -359,8 +359,6 @@ export default function Home() {
                     <ul className="text-sm text-gray-600 space-y-1.5">
                       <li>• <strong>Default:</strong> Musik auto-play pada {defaultPlayTime}</li>
                       <li>• <strong>Custom Time:</strong> Atur waktu sendiri</li>
-                      <li>• <strong>Penting:</strong> Tab harus tetap terbuka untuk auto-play</li>
-                      <li>• <strong>Notifikasi:</strong> Aktifkan untuk alert saat musik diputar</li>
                     </ul>
                   </div>
                 </div>
