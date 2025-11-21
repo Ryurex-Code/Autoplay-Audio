@@ -15,7 +15,7 @@ export default function Home() {
   const wakeLockRef = useRef<any>(null);
 
   // Default play time (bisa diatur sesuai kebutuhan)
-  const defaultPlayTime = "09:55";
+  const defaultPlayTime = "10:55";
 
   // Keep screen awake - Request Wake Lock
   useEffect(() => {
@@ -91,7 +91,7 @@ export default function Home() {
     // Use shorter interval for more accuracy
     const interval = setInterval(checkTime, 1000);
     return () => clearInterval(interval);
-  }, [isCustomTime, playTime, hasPlayed]);
+  }, [isCustomTime, playTime]);
 
   const playAudio = async () => {
     if (audioRef.current) {
